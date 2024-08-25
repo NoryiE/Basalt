@@ -34,16 +34,20 @@ local function flexObjectPlugin(base, basalt)
             return self
         end,
 
-        getSize = function(self)
-            return baseWidth, baseHeight
+        getSize = function(self, internalCall)
+            if internalCall then
+              return baseWidth, baseHeight
+            else
+              return base:getSize()
+            end
         end,
 
-        getWidth = function(self)
-            return baseWidth
+        getWidth = function(self, internalCall)
+            return internalCall and baseWidth or base:getWidth()
         end,
 
-        getHeight = function(self)
-            return baseHeight
+        getHeight = function(self, internalCall)
+            return internalCall and baseHeight or base:getHeight()
         end,
 
         setSize = function(self, width, height, rel, internalCall)
@@ -91,7 +95,7 @@ return function(name, basalt)
             for _,v in pairs(children)do
                 if(sortedChildren[index]==nil)then sortedChildren[index]={offset=1} end
 
-                local childHeight = direction == "row" and v:getHeight() or v:getWidth()
+                local childHeight = direction == "row" and v:getHeight(true) or v:getWidth(true)
                 if childHeight > lineSize then
                     lineSize = childHeight
                 end
@@ -123,19 +127,19 @@ return function(name, basalt)
                     index = index + 1
                     sortedChildren[index] = {offset=lineOffset}
                 else
-                    local objSize = direction == "row" and v:getWidth() or v:getHeight()
+                    local objSize = direction == "row" and v:getWidth(true) or v:getHeight(true)
                     if(objSize+usedSize<=maxSize) then
                         table.insert(sortedChildren[index], v)
                         usedSize = usedSize + objSize + spacing
                     else
                         lineOffset = lineOffset + lineSize + spacing
-                        lineSize = direction == "row" and v:getHeight() or v:getWidth()
+                        lineSize = direction == "row" and v:getHeight(true) or v:getWidth(true)
                         index = index + 1
                         usedSize = objSize + spacing
                         sortedChildren[index] = {offset=lineOffset, v}
                     end
 
-                    local childHeight = direction == "row" and v:getHeight() or v:getWidth()
+                    local childHeight = direction == "row" and v:getHeight(true) or v:getWidth(true)
                     if childHeight > lineSize then
                         lineSize = childHeight
                     end
@@ -178,7 +182,7 @@ return function(name, basalt)
                 end
 
                 child:setPosition(currentX, children.offset or 1)
-                child:setSize(childWidth, child:getHeight(), false, true)
+                child:setSize(childWidth, child:getHeight(true), false, true)
                 currentX = currentX + childWidth + spacing
             end
         end
@@ -255,7 +259,7 @@ return function(name, basalt)
                 local flexGrow = child:getFlexGrow()
                 local flexShrink = child:getFlexShrink()
 
-                local baseHeight = child:getFlexBasis() ~= 0 and child:getFlexBasis() or child:getHeight()
+                local baseHeight = child:getFlexBasis() ~= 0 and child:getFlexBasis() or child:getHeight(true)
                 if totalFlexGrow > 0 then
                     childHeight = baseHeight + flexGrow / totalFlexGrow * remainingSpace
                 else
@@ -306,7 +310,7 @@ return function(name, basalt)
             local numSpaces = #children + 1
             local totalChildHeight = 0
             for _, child in ipairs(children) do
-                totalChildHeight = totalChildHeight + child:getHeight()
+                totalChildHeight = totalChildHeight + child:getHeight(true)
             end
             local totalSpace = containerHeight - totalChildHeight
             local offset = math.floor(totalSpace / numSpaces)
@@ -316,7 +320,7 @@ return function(name, basalt)
             for _, child in ipairs(children) do
                 local x, y = child:getPosition()
                 child:setPosition(x, currentY)
-                currentY = currentY + child:getHeight() + offset + (remaining > 0 and 1 or 0)
+                currentY = currentY + child:getHeight(true) + offset + (remaining > 0 and 1 or 0)
                 remaining = remaining > 0 and remaining - 1 or 0
             end
         end
