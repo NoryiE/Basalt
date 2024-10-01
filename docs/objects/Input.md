@@ -1,6 +1,6 @@
 Input objects allow you to create a field where the user can enter text.
 
-In addition to the Object and VisualObject methods, Input objects have the following methods:
+Input objects are derived from Object, VisualObject, and ChangeableObject. Input objects have the following additional methods:
 
 |   |   |
 |---|---|
